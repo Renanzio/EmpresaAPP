@@ -1,5 +1,1181 @@
-<body>
-    <div id="app"></div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RH Central — Controle de Funcionários</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <script type="module" src="/src/main.js"></script>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #181c27;
+      --surface2:  #1e2233;
+      --border:    #2a2f45;
+      --accent:    #4f8ef7;
+      --accent2:   #7c3aed;
+      --success:   #22c55e;
+      --danger:    #ef4444;
+      --warn:      #f59e0b;
+      --text:      #e8ecf4;
+      --muted:     #7a8299;
+      --radius:    12px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── AUTH ──────────────────────────────────────── */
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at 60% 20%, #1a1f3a 0%, var(--bg) 65%);
+    }
+
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: var(--shadow);
+    }
+
+    .auth-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -.5px;
+      margin-bottom: 6px;
+    }
+
+    .auth-sub {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .auth-tab.active {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+
+    .field input, .field select, .field textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: .9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .field select option { background: var(--surface); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-primary:hover { background: #3a7de8; }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-danger-ghost {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--danger);
+    }
+
+    .btn-danger-ghost:hover { background: rgba(239,68,68,.1); }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover { background: #16a34a; }
+
+    .btn-sm { padding: 7px 13px; font-size: .8rem; }
+
+    .error-msg {
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.3);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .85rem;
+      margin-bottom: 16px;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────── */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+    }
+
+    .sidebar-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+      padding: 0 8px;
+      margin-bottom: 32px;
+    }
+
+    .sidebar-label {
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 0 8px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .875rem;
+      color: var(--muted);
+      transition: all .15s;
+      margin-bottom: 2px;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+    .sidebar-item.active { background: rgba(79,142,247,.15); color: var(--accent); }
+
+    .sidebar-badge {
+      margin-left: auto;
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    .sidebar-item.active .sidebar-badge {
+      background: rgba(79,142,247,.2);
+      color: var(--accent);
+    }
+
+    .sidebar-spacer { flex: 1; }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--surface2);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-email {
+      font-size: .75rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .logout-btn {
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      font-size: .75rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      margin-left: auto;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .logout-btn:hover { background: rgba(239,68,68,.1); }
+
+    /* ── MAIN ────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .page-sub { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+    .content {
+      flex: 1;
+      padding: 28px 32px;
+      overflow-y: auto;
+    }
+
+    /* ── STATS ───────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+
+    .stat-label { font-size: .75rem; color: var(--muted); font-weight: 500; margin-bottom: 6px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .stat-value.blue { color: var(--accent); }
+    .stat-value.green { color: var(--success); }
+    .stat-value.purple { color: #a78bfa; }
+    .stat-value.orange { color: var(--warn); }
+
+    /* ── TABLE ───────────────────────────────────────── */
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px;
+      color: var(--text);
+      font-size: .875rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      width: 240px;
+      transition: border-color .2s;
+    }
+
+    .search-box:focus { border-color: var(--accent); }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 13px 18px;
+      text-align: left;
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background .15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+
+    tbody td {
+      padding: 14px 18px;
+      font-size: .875rem;
+      vertical-align: middle;
+    }
+
+    .emp-name { font-weight: 600; }
+    .emp-email { font-size: .8rem; color: var(--muted); }
+
+    .role-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    .role-dev     { background: rgba(79,142,247,.15); color: #7eb3ff; }
+    .role-design  { background: rgba(168,85,247,.15); color: #c084fc; }
+    .role-rh      { background: rgba(34,197,94,.15);  color: #4ade80; }
+    .role-fin     { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .role-mkt     { background: rgba(236,72,153,.15); color: #f472b6; }
+    .role-ops     { background: rgba(20,184,166,.15); color: #2dd4bf; }
+    .role-dir     { background: rgba(239,68,68,.15);  color: #f87171; }
+    .role-default { background: rgba(122,130,153,.15); color: var(--muted); }
+
+    .actions { display: flex; gap: 6px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 56px 20px;
+      color: var(--muted);
+    }
+
+    .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty-title { font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-text { font-size: .875rem; }
+
+    /* ── MODAL ───────────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: var(--shadow);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    /* ── TOAST ───────────────────────────────────────── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 200;
+    }
+
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: .875rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn .25s ease;
+    }
+
+    .toast.ok  { border-left: 3px solid var(--success); }
+    .toast.err { border-left: 3px solid var(--danger); }
+
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(20px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    /* ── SPINNER ─────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      flex-direction: column;
+      gap: 16px;
+      color: var(--muted);
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .content { padding: 20px 16px; }
+      .topbar { padding: 16px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .table-header { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+    }
+
+    /* ── SETUP BANNER ─────────────────────────────────── */
+    .setup-banner {
+      background: rgba(245,158,11,.1);
+      border: 1px solid rgba(245,158,11,.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: .85rem;
+      color: #fcd34d;
+      line-height: 1.6;
+    }
+
+    .setup-banner strong { color: #fbbf24; }
+    .setup-banner code {
+      background: rgba(0,0,0,.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: .8rem;
+    }
+
+    .config-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 500px) { .config-fields { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- LOADING -->
+  <div v-if="appState === 'loading'" class="loading-screen">
+    <div class="spinner" style="width:32px;height:32px;border-width:3px"></div>
+    <span>Inicializando...</span>
+  </div>
+
+  <!-- FIREBASE CONFIG SETUP -->
+  <div v-else-if="appState === 'setup'" class="auth-screen">
+    <div class="auth-card" style="max-width:520px">
+      <div class="auth-logo">⚙️ RH Central</div>
+      <div class="auth-sub">Configure suas credenciais do Firebase para começar</div>
+
+      <div class="setup-banner">
+        <strong>Como obter as credenciais:</strong><br>
+        1. Acesse <strong>console.firebase.google.com</strong><br>
+        2. Crie um projeto → <strong>Adicionar app Web</strong><br>
+        3. Copie os valores do objeto <code>firebaseConfig</code><br>
+        4. Ative <strong>Authentication (Email/Senha)</strong> e <strong>Firestore Database</strong>
+      </div>
+
+      <div class="config-fields">
+        <div class="field">
+          <label>API Key</label>
+          <input v-model="fbConfig.apiKey" placeholder="AIza..." />
+        </div>
+        <div class="field">
+          <label>Auth Domain</label>
+          <input v-model="fbConfig.authDomain" placeholder="projeto.firebaseapp.com" />
+        </div>
+        <div class="field">
+          <label>Project ID</label>
+          <input v-model="fbConfig.projectId" placeholder="meu-projeto" />
+        </div>
+        <div class="field">
+          <label>Storage Bucket</label>
+          <input v-model="fbConfig.storageBucket" placeholder="projeto.appspot.com" />
+        </div>
+        <div class="field">
+          <label>Messaging Sender ID</label>
+          <input v-model="fbConfig.messagingSenderId" placeholder="123456789" />
+        </div>
+        <div class="field">
+          <label>App ID</label>
+          <input v-model="fbConfig.appId" placeholder="1:123:web:abc" />
+        </div>
+      </div>
+
+      <div v-if="authError" class="error-msg">{{ authError }}</div>
+
+      <button class="btn btn-primary" style="margin-top:8px" @click="initFirebase" :disabled="loading">
+        <span v-if="loading" class="spinner"></span>
+        <span v-else>Conectar ao Firebase</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- AUTH: LOGIN / CADASTRO -->
+  <div v-else-if="appState === 'auth'" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">👥 RH Central</div>
+      <div class="auth-sub">Gestão de funcionários simplificada</div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab" :class="{ active: authTab === 'login' }" @click="authTab = 'login'; authError = ''">
+          Entrar
+        </button>
+        <button class="auth-tab" :class="{ active: authTab === 'register' }" @click="authTab = 'register'; authError = ''">
+          Criar conta
+        </button>
+      </div>
+
+      <div v-if="authError" class="error-msg">{{ authError }}</div>
+
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" v-model="authEmail" placeholder="seu@email.com" @keyup.enter="submitAuth" />
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <input type="password" v-model="authPassword" placeholder="••••••••" @keyup.enter="submitAuth" />
+      </div>
+      <div v-if="authTab === 'register'" class="field">
+        <label>Confirmar senha</label>
+        <input type="password" v-model="authConfirm" placeholder="••••••••" @keyup.enter="submitAuth" />
+      </div>
+
+      <button class="btn btn-primary" @click="submitAuth" :disabled="loading">
+        <span v-if="loading" class="spinner"></span>
+        <span v-else>{{ authTab === 'login' ? 'Entrar' : 'Criar conta' }}</span>
+      </button>
+
+      <p style="text-align:center;margin-top:16px;font-size:.8rem;color:var(--muted)">
+        {{ authTab === 'login' ? 'Não tem conta?' : 'Já tem conta?' }}
+        <a href="#" style="color:var(--accent);text-decoration:none"
+           @click.prevent="authTab = authTab === 'login' ? 'register' : 'login'; authError = ''">
+          {{ authTab === 'login' ? 'Criar conta' : 'Entrar' }}
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <!-- APP PRINCIPAL -->
+  <div v-else-if="appState === 'app'" class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">👥 RH Central</div>
+
+      <div class="sidebar-label">Visualizar</div>
+
+      <button class="sidebar-item" :class="{ active: activeRole === 'todos' }" @click="activeRole = 'todos'">
+        <span>🏢</span> Todos
+        <span class="sidebar-badge">{{ employees.length }}</span>
+      </button>
+
+      <button v-for="role in rolesList" :key="role.key"
+              class="sidebar-item"
+              :class="{ active: activeRole === role.key }"
+              @click="activeRole = role.key">
+        <span>{{ role.icon }}</span> {{ role.label }}
+        <span class="sidebar-badge">{{ countByRole(role.key) }}</span>
+      </button>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="user-info">
+        <div class="user-avatar">{{ userInitial }}</div>
+        <span class="user-email">{{ currentUser?.email }}</span>
+        <button class="logout-btn" @click="logout" title="Sair">✕</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="page-title">{{ currentPageTitle }}</div>
+          <div class="page-sub">{{ filteredEmployees.length }} funcionário{{ filteredEmployees.length !== 1 ? 's' : '' }} encontrado{{ filteredEmployees.length !== 1 ? 's' : '' }}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" @click="openModal()">
+          + Novo funcionário
+        </button>
+      </header>
+
+      <div class="content">
+
+        <!-- STATS (só na view "todos") -->
+        <div v-if="activeRole === 'todos'" class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total</div>
+            <div class="stat-value blue">{{ employees.length }}</div>
+          </div>
+          <div class="stat-card" v-for="role in rolesList" :key="role.key">
+            <div class="stat-label">{{ role.label }}</div>
+            <div class="stat-value" :class="role.statColor">{{ countByRole(role.key) }}</div>
+          </div>
+        </div>
+
+        <!-- BARRA DE BUSCA -->
+        <div class="table-header">
+          <input class="search-box" v-model="search" placeholder="🔍  Buscar por nome, e-mail ou cargo..." />
+          <button class="btn btn-ghost btn-sm" @click="openModal()">+ Adicionar</button>
+        </div>
+
+        <!-- TABELA -->
+        <div class="table-wrap">
+          <table v-if="filteredEmployees.length > 0">
+            <thead>
+              <tr>
+                <th>Funcionário</th>
+                <th>Função</th>
+                <th>Departamento</th>
+                <th>Telefone</th>
+                <th>Admissão</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="emp in filteredEmployees" :key="emp.id">
+                <td>
+                  <div class="emp-name">{{ emp.name }}</div>
+                  <div class="emp-email">{{ emp.email }}</div>
+                </td>
+                <td>
+                  <span class="role-badge" :class="roleBadgeClass(emp.role)">
+                    {{ getRoleLabel(emp.role) }}
+                  </span>
+                </td>
+                <td>{{ emp.department || '—' }}</td>
+                <td>{{ emp.phone || '—' }}</td>
+                <td>{{ formatDate(emp.admissionDate) }}</td>
+                <td>
+                  <div class="actions">
+                    <button class="btn btn-ghost btn-sm" @click="openModal(emp)" title="Editar">✏️ Editar</button>
+                    <button class="btn btn-danger-ghost btn-sm" @click="confirmDelete(emp)" title="Excluir">🗑</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div v-else class="empty-state">
+            <div class="empty-icon">👤</div>
+            <div class="empty-title">Nenhum funcionário encontrado</div>
+            <div class="empty-text">
+              {{ search ? 'Tente outro termo de busca.' : 'Clique em "+ Novo funcionário" para começar.' }}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ── MODAL CADASTRO / EDIÇÃO ── -->
+  <div v-if="showModal" class="overlay" @click.self="showModal = false">
+    <div class="modal">
+      <div class="modal-title">{{ editingEmp ? '✏️ Editar funcionário' : '➕ Novo funcionário' }}</div>
+
+      <div v-if="modalError" class="error-msg">{{ modalError }}</div>
+
+      <div class="field">
+        <label>Nome completo *</label>
+        <input v-model="form.name" placeholder="João da Silva" />
+      </div>
+      <div class="field">
+        <label>E-mail *</label>
+        <input type="email" v-model="form.email" placeholder="joao@empresa.com" />
+      </div>
+      <div class="field">
+        <label>Função / Cargo *</label>
+        <select v-model="form.role">
+          <option value="">Selecione...</option>
+          <option v-for="r in rolesList" :key="r.key" :value="r.key">{{ r.icon }} {{ r.label }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Departamento</label>
+        <input v-model="form.department" placeholder="Engenharia, Marketing..." />
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input v-model="form.phone" placeholder="(11) 99999-9999" />
+      </div>
+      <div class="field">
+        <label>Data de admissão</label>
+        <input type="date" v-model="form.admissionDate" />
+      </div>
+      <div class="field">
+        <label>Observações</label>
+        <textarea v-model="form.notes" rows="2" placeholder="Informações adicionais..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" @click="showModal = false">Cancelar</button>
+        <button class="btn btn-success" @click="saveEmployee" :disabled="loading">
+          <span v-if="loading" class="spinner"></span>
+          <span v-else>{{ editingEmp ? 'Salvar alterações' : 'Cadastrar' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL CONFIRMAÇÃO DELETE ── -->
+  <div v-if="showDeleteModal" class="overlay" @click.self="showDeleteModal = false">
+    <div class="modal" style="max-width:380px">
+      <div class="modal-title">🗑️ Excluir funcionário</div>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:8px">
+        Tem certeza que deseja excluir <strong style="color:var(--text)">{{ deletingEmp?.name }}</strong>?
+        Esta ação não pode ser desfeita.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" @click="showDeleteModal = false">Cancelar</button>
+        <button class="btn" style="background:var(--danger);color:#fff" @click="deleteEmployee" :disabled="loading">
+          <span v-if="loading" class="spinner"></span>
+          <span v-else>Excluir</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOASTS ── -->
+  <div class="toast-wrap">
+    <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+      <span>{{ t.type === 'ok' ? '✅' : '❌' }}</span>
+      {{ t.msg }}
+    </div>
+  </div>
+
+</div>
+
+<!-- Vue 3 -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<!-- Firebase 10 -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, addDoc, getDocs, doc,
+  updateDoc, deleteDoc, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const { createApp, ref, computed, watch } = Vue;
+
+createApp({
+  setup() {
+
+    // ── STATE ──────────────────────────────────────────
+    const appState   = ref('loading'); // loading | setup | auth | app
+    const authTab    = ref('login');
+    const authEmail  = ref('');
+    const authPassword = ref('');
+    const authConfirm  = ref('');
+    const authError  = ref('');
+    const loading    = ref(false);
+    const currentUser = ref(null);
+
+    const employees  = ref([]);
+    const activeRole = ref('todos');
+    const search     = ref('');
+
+    const showModal    = ref(false);
+    const showDeleteModal = ref(false);
+    const editingEmp   = ref(null);
+    const deletingEmp  = ref(null);
+    const modalError   = ref('');
+    const toasts       = ref([]);
+
+    const form = ref(emptyForm());
+
+    let firebaseApp, auth, db;
+
+    // ── FIREBASE CONFIG ────────────────────────────────
+    const fbConfig = ref({
+      apiKey: '', authDomain: '', projectId: '',
+      storageBucket: '', messagingSenderId: '', appId: ''
+    });
+
+    // Try loading saved config
+    const savedConfig = localStorage.getItem('rhcentral_fb_config');
+    if (savedConfig) {
+      try {
+        const c = JSON.parse(savedConfig);
+        fbConfig.value = c;
+        boot(c);
+      } catch { appState.value = 'setup'; }
+    } else {
+      appState.value = 'setup';
+    }
+
+    async function initFirebase() {
+      const c = fbConfig.value;
+      if (!c.apiKey || !c.projectId || !c.authDomain) {
+        authError.value = 'Preencha ao menos API Key, Auth Domain e Project ID.';
+        return;
+      }
+      loading.value = true;
+      authError.value = '';
+      try {
+        await boot(c);
+        localStorage.setItem('rhcentral_fb_config', JSON.stringify(c));
+      } catch (e) {
+        authError.value = 'Erro ao conectar: ' + e.message;
+        appState.value = 'setup';
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function boot(config) {
+      firebaseApp = initializeApp(config);
+      auth = getAuth(firebaseApp);
+      db   = getFirestore(firebaseApp);
+
+      return new Promise((resolve) => {
+        onAuthStateChanged(auth, (user) => {
+          currentUser.value = user;
+          if (user) {
+            appState.value = 'app';
+            loadEmployees();
+          } else {
+            appState.value = 'auth';
+            employees.value = [];
+          }
+          resolve();
+        });
+      });
+    }
+
+    // ── AUTH ───────────────────────────────────────────
+    async function submitAuth() {
+      authError.value = '';
+      if (!authEmail.value || !authPassword.value) {
+        authError.value = 'Preencha e-mail e senha.'; return;
+      }
+      if (authTab.value === 'register' && authPassword.value !== authConfirm.value) {
+        authError.value = 'As senhas não coincidem.'; return;
+      }
+      loading.value = true;
+      try {
+        if (authTab.value === 'login') {
+          await signInWithEmailAndPassword(auth, authEmail.value, authPassword.value);
+        } else {
+          await createUserWithEmailAndPassword(auth, authEmail.value, authPassword.value);
+        }
+      } catch (e) {
+        authError.value = friendlyAuthError(e.code);
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function logout() {
+      await signOut(auth);
+      toast('Sessão encerrada.', 'ok');
+    }
+
+    function friendlyAuthError(code) {
+      const map = {
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/user-not-found': 'Usuário não encontrado.',
+        'auth/wrong-password': 'Senha incorreta.',
+        'auth/email-already-in-use': 'E-mail já cadastrado.',
+        'auth/weak-password': 'A senha deve ter ao menos 6 caracteres.',
+        'auth/invalid-credential': 'Credenciais inválidas. Verifique e-mail e senha.',
+      };
+      return map[code] || 'Erro de autenticação: ' + code;
+    }
+
+    // ── FIRESTORE CRUD ─────────────────────────────────
+    async function loadEmployees() {
+      try {
+        const q = query(collection(db, 'employees'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        employees.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        // fallback sem orderBy (índice pode não existir)
+        try {
+          const snap = await getDocs(collection(db, 'employees'));
+          employees.value = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        } catch (e2) {
+          toast('Erro ao carregar funcionários.', 'err');
+        }
+      }
+    }
+
+    async function saveEmployee() {
+      modalError.value = '';
+      if (!form.value.name.trim()) { modalError.value = 'Nome é obrigatório.'; return; }
+      if (!form.value.email.trim()) { modalError.value = 'E-mail é obrigatório.'; return; }
+      if (!form.value.role) { modalError.value = 'Selecione uma função.'; return; }
+
+      loading.value = true;
+      try {
+        const payload = {
+          name: form.value.name.trim(),
+          email: form.value.email.trim(),
+          role: form.value.role,
+          department: form.value.department.trim(),
+          phone: form.value.phone.trim(),
+          admissionDate: form.value.admissionDate,
+          notes: form.value.notes.trim(),
+        };
+
+        if (editingEmp.value) {
+          // PUT — atualizar
+          await updateDoc(doc(db, 'employees', editingEmp.value.id), payload);
+          const idx = employees.value.findIndex(e => e.id === editingEmp.value.id);
+          if (idx !== -1) employees.value[idx] = { id: editingEmp.value.id, ...payload };
+          toast('Funcionário atualizado com sucesso!', 'ok');
+        } else {
+          // POST — criar
+          payload.createdAt = serverTimestamp();
+          const ref = await addDoc(collection(db, 'employees'), payload);
+          employees.value.unshift({ id: ref.id, ...payload });
+          toast('Funcionário cadastrado com sucesso!', 'ok');
+        }
+        showModal.value = false;
+      } catch (e) {
+        modalError.value = 'Erro ao salvar: ' + e.message;
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    async function deleteEmployee() {
+      if (!deletingEmp.value) return;
+      loading.value = true;
+      try {
+        // DELETE
+        await deleteDoc(doc(db, 'employees', deletingEmp.value.id));
+        employees.value = employees.value.filter(e => e.id !== deletingEmp.value.id);
+        toast('Funcionário excluído.', 'ok');
+        showDeleteModal.value = false;
+      } catch (e) {
+        toast('Erro ao excluir: ' + e.message, 'err');
+      } finally {
+        loading.value = false;
+      }
+    }
+
+    // ── HELPERS ────────────────────────────────────────
+    function emptyForm() {
+      return { name:'', email:'', role:'', department:'', phone:'', admissionDate:'', notes:'' };
+    }
+
+    function openModal(emp = null) {
+      editingEmp.value = emp;
+      modalError.value = '';
+      form.value = emp
+        ? { name: emp.name, email: emp.email, role: emp.role,
+            department: emp.department||'', phone: emp.phone||'',
+            admissionDate: emp.admissionDate||'', notes: emp.notes||'' }
+        : emptyForm();
+      showModal.value = true;
+    }
+
+    function confirmDelete(emp) {
+      deletingEmp.value = emp;
+      showDeleteModal.value = true;
+    }
+
+    function toast(msg, type = 'ok') {
+      const id = Date.now();
+      toasts.value.push({ id, msg, type });
+      setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, 3500);
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      const [y, m, day] = d.split('-');
+      return `${day}/${m}/${y}`;
+    }
+
+    // ── ROLES ──────────────────────────────────────────
+    const rolesList = [
+      { key: 'dev',    label: 'Desenvolvimento', icon: '💻', statColor: 'blue' },
+      { key: 'design', label: 'Design',           icon: '🎨', statColor: 'purple' },
+      { key: 'rh',     label: 'Recursos Humanos', icon: '🤝', statColor: 'green' },
+      { key: 'fin',    label: 'Financeiro',        icon: '💰', statColor: 'orange' },
+      { key: 'mkt',    label: 'Marketing',         icon: '📣', statColor: 'blue' },
+      { key: 'ops',    label: 'Operações',         icon: '⚙️', statColor: 'blue' },
+      { key: 'dir',    label: 'Diretoria',         icon: '🏛️', statColor: 'purple' },
+    ];
+
+    function getRoleLabel(key) {
+      return rolesList.find(r => r.key === key)?.label || key || 'Outro';
+    }
+
+    function roleBadgeClass(key) {
+      const map = {
+        dev: 'role-dev', design: 'role-design', rh: 'role-rh',
+        fin: 'role-fin', mkt: 'role-mkt', ops: 'role-ops', dir: 'role-dir',
+      };
+      return map[key] || 'role-default';
+    }
+
+    function countByRole(key) {
+      return employees.value.filter(e => e.role === key).length;
+    }
+
+    // ── COMPUTED ───────────────────────────────────────
+    const filteredEmployees = computed(() => {
+      let list = employees.value;
+      if (activeRole.value !== 'todos') list = list.filter(e => e.role === activeRole.value);
+      if (search.value.trim()) {
+        const s = search.value.toLowerCase();
+        list = list.filter(e =>
+          e.name.toLowerCase().includes(s) ||
+          e.email.toLowerCase().includes(s) ||
+          getRoleLabel(e.role).toLowerCase().includes(s) ||
+          (e.department || '').toLowerCase().includes(s)
+        );
+      }
+      return list;
+    });
+
+    const currentPageTitle = computed(() => {
+      if (activeRole.value === 'todos') return 'Todos os Funcionários';
+      return rolesList.find(r => r.key === activeRole.value)?.label || 'Funcionários';
+    });
+
+    const userInitial = computed(() =>
+      currentUser.value?.email?.charAt(0).toUpperCase() || '?'
+    );
+
+    return {
+      appState, authTab, authEmail, authPassword, authConfirm,
+      authError, loading, currentUser, fbConfig, initFirebase,
+      employees, activeRole, search, filteredEmployees,
+      showModal, showDeleteModal, editingEmp, deletingEmp,
+      modalError, form, toasts, rolesList,
+      submitAuth, logout, openModal, confirmDelete,
+      saveEmployee, deleteEmployee,
+      formatDate, getRoleLabel, roleBadgeClass, countByRole,
+      currentPageTitle, userInitial,
+    };
+  }
+}).mount('#app');
+</script>
 </body>
+</html>
